@@ -1,0 +1,10 @@
+{{session['username']}}
+
+<form action="/logout" method="post">
+    <input type="hidden" id="username" name="username" value={{session['username']}}>
+    <input type="submit" value="Logout">
+</form> 
+
+{% if error  %}
+<p> {{ error }} </p>
+{% endif %}
