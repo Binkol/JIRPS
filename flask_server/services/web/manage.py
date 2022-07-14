@@ -1,5 +1,5 @@
 from flask.cli import FlaskGroup
-from project import app, db
+from project import app, db, socketio
 
 cli = FlaskGroup(app)
 

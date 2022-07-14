@@ -5,6 +5,12 @@
     <input type="submit" value="Logout">
 </form> 
 
+<form action="/game_room" method="post">
+    <label for="room">Insert room name here to start:</label><br>
+    <input type="text" id="room" name="room" value=""><br><br>
+    <input type="submit" value="Submit">
+</form> 
+
 {% if error  %}
 <p> {{ error }} </p>
 {% endif %}
