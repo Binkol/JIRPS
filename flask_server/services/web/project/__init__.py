@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request, session
 from project.models import db, User, Game
 from flask_socketio import SocketIO, join_room, leave_room, emit
+from project import utils
 import datetime
 
 app = Flask(__name__,
@@ -14,21 +15,6 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 games_statuses = {}
 
-def getWinner(game_status):
-    keys = list(game_status)
-    values = list(game_status.values())
-
-    if values[0] == values[1]:
-        return None
-    
-    if values[0] == "rock" and values[1] == "scissors":
-        return keys[0]
-    elif values[0] == "paper" and values[1] == "rock":
-        return keys[0]
-    elif values[0] == "scissors" and values[1] == "paper":
-        return keys[0]
-    else:
-        return keys[1]
 
 @app.route("/")
 def register():
@@ -38,6 +24,8 @@ def register():
 def login():
     username = request.form['username']
     session["username"] = username
+    session['error'] = ""
+
     try:
         user = User.query.filter_by(name=username).first()
         if user and user.active:
@@ -70,10 +58,11 @@ def logout():
 
 @app.route("/game_room", methods=['GET', 'POST'])
 def game_room():
-    session["room"] = request.form["room"]
     user = User.query.filter_by(name=session.get('username')).first()
     game = Game.query.filter_by(room_name=request.form["room"]).first()
-    
+    session["room"] = request.form["room"]
+    session["credits"] = user.credits
+
     if not game:
         new_game = Game(
                 room_name = request.form["room"],
@@ -84,13 +73,15 @@ def game_room():
         db.session.commit()
 
         session["player1"] = user.name
+        games_statuses[request.form["room"]] = {}
     else:
-        game.user2_id = user.id
-        db.session.commit()
-
-        session["player2"] = user.name
-    
-    games_statuses[request.form["room"]] = {}
+        if game.user2_id is None:
+            game.user2_id = user.id
+            db.session.commit()
+            session["player2"] = user.name
+        else:
+            session['error'] = "Room is full or Game is finished"
+            return render_template("home.html", session=session)
 
     return render_template("game_room.html", session=session)
 
@@ -101,11 +92,13 @@ def join(message):
     join_room(room)
     emit("status", {"msg": session.get("username") + "has entered"}, room=room)
 
+
 @socketio.on("text", namespace="/game_room")
 def text(message):
     room = session.get("room")
     print("message send", message["msg"], "from ", session.get("username"))
-    emit("message", {"msg": session.get("username") + message["msg"]}, room=room)
+    emit("message", {"msg": session.get("username") + ": " + message["msg"]}, room=room)
+
 
 @socketio.on("left", namespace="/game_room")
 def left(message):
@@ -113,19 +106,31 @@ def left(message):
     username = session.get("username")
     leave_room(room)
     session.clear()
+
+    game = Game.query.filter_by(room_name=room).first()
+    game.finished_at = datetime.datetime.now()
+    games_statuses.pop(room, None)
+
+    user = User.query.filter_by(name=username).first()
+    user.active = False
+
+    db.session.commit()
     emit("status", {"msg": "username " + username + " left."})
 
-@socketio.on("selected_option", namespace="/game_room")
+
+@socketio.on("selected_option", namespace="/game_room")#select rock paper or scissors
 def choose_rock(message):
     room = session.get("room")
     username = session.get("username")
 
     games_statuses[room][username] = message["msg"]
     emit("message", {"msg": username + " is ready."}, room=room)
-    
-    if len(games_statuses[room]) == 2:
-        winner = getWinner(games_statuses[room])
+
+    if len(games_statuses[room]) == 2: #if two players are connected to a game sessions
+        winner = utils.getWinner(games_statuses[room])
         if winner is not None:
+            utils.calculate_and_commit_players_credits(list(games_statuses[room]), winner)
+            utils.emit_updated_score(room, list(games_statuses[room]))
             msg = "{} won with {}".format(winner, games_statuses[room][winner])
         else:
             msg = "Draw, {0} against {0}".format(games_statuses[room][username])

@@ -7,6 +7,8 @@
             var socket;
             $(document).ready(function()
             {
+                
+
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/game_room');
                 socket.on('connect', function() 
                 {
@@ -21,9 +23,16 @@
 
                 socket.on('message', function(data) 
                 {
-                    $('#chat').val($('#chat').val() + ": " + data.msg + '\n');
-                    console.log(data.msg);
+                    $('#chat').val($('#chat').val() + data.msg + '\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                });
+
+                socket.on('score_update', function(data) 
+                {
+                    if($('#username').text() === data.username)
+                    {
+                       $('#credits').text(data.score);
+                    }
                 });
 
                 $('#send').click(function(e) 
@@ -35,24 +44,68 @@
 
                 $('#rock').click(function(e) 
                 {
+                    if(is_enough_credits())
+                    {
                         socket.emit('selected_option', {msg: "rock"});
+                        $('#credits').css("color", "black");
+                    }
+                    else
+                    {
+                        not_enough_credits()
+                    }
                 });
-                
+
                 $('#paper').click(function(e) 
                 {
+                    
+                    if(is_enough_credits())
+                    {
                         socket.emit('selected_option', {msg: "paper"});
+                        $('#credits').css("color", "black");
+                    }
+                    else
+                    {
+                        not_enough_credits()
+                    }
                 });
 
                 $('#scissors').click(function(e) 
                 {
+                    if(is_enough_credits())
+                    {
                         socket.emit('selected_option', {msg: "scissors"});
+                        $('#credits').css("color", "black");
+                    }
+                    else
+                    {
+                        not_enough_credits()
+                    }
                 });
+
             });
-            function leave_room() {
+            
+            function not_enough_credits()
+            {
+                $('#credits').css("color", "red");
+                $('#chat').val($('#chat').val() + "Not enough credits\n");
+                $('#chat').scrollTop($('#chat')[0].scrollHeight); 
+            }
+
+            function leave_room() 
+            {
                 socket.emit('left', {}, function() {
                     socket.disconnect();
                     window.location.href = "{{ url_for('register') }}";
                 });
+            }
+        
+            function is_enough_credits()
+            {
+                if(parseInt($('#credits').text()) - 3 > 0)
+                {
+                    return true;
+                }
+                return false
             }
         </script>
   </head>
@@ -60,8 +113,9 @@
   <body class="text-center">
     
     <div class="chatwindow">
-      <h2>User : {{session['username']}}</h2>
+      <h2>User : <span id="username">{{session['username']}}</span></h2>
       <h2>Room : {{session['room']}}</h2><br>
+      <h2>Credits : <span id="credits">{{session['credits']}}</span></h2><br>
       <textarea id="chat" cols="70" rows="10" placeholder="No messages yet. Start one..."></textarea><br /><br />
       
       <input type="text" id="text" size="60" placeholder="Enter your message here"/>

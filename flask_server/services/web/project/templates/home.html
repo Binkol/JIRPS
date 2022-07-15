@@ -11,6 +11,6 @@
     <input type="submit" value="Submit">
 </form> 
 
-{% if error  %}
-<p> {{ error }} </p>
+{% if session['error']  %}
+<p> {{ session['error'] }} </p>
 {% endif %}
