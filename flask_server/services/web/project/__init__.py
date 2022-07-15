@@ -138,5 +138,17 @@ def choose_rock(message):
         games_statuses[room] = {}
 
 
+@socketio.on("credits_request", namespace="/game_room")
+def add_credits(message):
+    room = session.get("room")
+    username = session.get("username")
+
+    user = User.query.filter_by(name=username).first()
+    user.credits += 10
+    db.session.commit()
+
+    utils.emit_updated_score(room, [username])
+
+
     
 

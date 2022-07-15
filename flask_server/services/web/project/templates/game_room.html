@@ -47,7 +47,6 @@
                     if(is_enough_credits())
                     {
                         socket.emit('selected_option', {msg: "rock"});
-                        $('#credits').css("color", "black");
                     }
                     else
                     {
@@ -61,7 +60,6 @@
                     if(is_enough_credits())
                     {
                         socket.emit('selected_option', {msg: "paper"});
-                        $('#credits').css("color", "black");
                     }
                     else
                     {
@@ -74,12 +72,18 @@
                     if(is_enough_credits())
                     {
                         socket.emit('selected_option', {msg: "scissors"});
-                        $('#credits').css("color", "black");
                     }
                     else
                     {
                         not_enough_credits()
                     }
+                });
+
+                $('#add_credits').click(function(e) 
+                {
+                    socket.emit('credits_request', {msg: "asd"});
+                    $('#credits').css("color", "black");
+                    $('#add_credits').hide(); 
                 });
 
             });
@@ -88,7 +92,8 @@
             {
                 $('#credits').css("color", "red");
                 $('#chat').val($('#chat').val() + "Not enough credits\n");
-                $('#chat').scrollTop($('#chat')[0].scrollHeight); 
+                $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                $('#add_credits').show(); 
             }
 
             function leave_room() 
@@ -116,6 +121,8 @@
       <h2>User : <span id="username">{{session['username']}}</span></h2>
       <h2>Room : {{session['room']}}</h2><br>
       <h2>Credits : <span id="credits">{{session['credits']}}</span></h2><br>
+      <button type="button" id="add_credits" class="btn btn-success" hidden>add credits</button><br/><br/>
+
       <textarea id="chat" cols="70" rows="10" placeholder="No messages yet. Start one..."></textarea><br /><br />
       
       <input type="text" id="text" size="60" placeholder="Enter your message here"/>
