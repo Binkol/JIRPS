@@ -13,19 +13,39 @@
                     socket.emit('join', {});
                 });
                 
-                socket.on('status', function(data) {
+                socket.on('status', function(data) 
+                {
                     $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
-                socket.on('message', function(data) {
+
+                socket.on('message', function(data) 
+                {
                     $('#chat').val($('#chat').val() + ": " + data.msg + '\n');
                     console.log(data.msg);
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
-                $('#send').click(function(e) {
+
+                $('#send').click(function(e) 
+                {
                         text = $('#text').val();
                         $('#text').val('');
                         socket.emit('text', {msg: text});
+                });
+
+                $('#rock').click(function(e) 
+                {
+                        socket.emit('selected_option', {msg: "rock"});
+                });
+                
+                $('#paper').click(function(e) 
+                {
+                        socket.emit('selected_option', {msg: "paper"});
+                });
+
+                $('#scissors').click(function(e) 
+                {
+                        socket.emit('selected_option', {msg: "scissors"});
                 });
             });
             function leave_room() {
@@ -43,9 +63,16 @@
       <h2>User : {{session['username']}}</h2>
       <h2>Room : {{session['room']}}</h2><br>
       <textarea id="chat" cols="70" rows="10" placeholder="No messages yet. Start one..."></textarea><br /><br />
+      
       <input type="text" id="text" size="60" placeholder="Enter your message here"/>
+      
       <button type="button" id="send" class="btn btn-success">SEND</button><br/><br/>
-      <button type="button" class="btn btn-danger" onclick=leave_room()>Leave this Chat</button>
+
+      <button type="button" id="rock" class="btn btn-success">ROCK</button><br/><br/>
+      <button type="button" id="paper" class="btn btn-success">PAPER</button><br/><br/>
+      <button type="button" id="scissors" class="btn btn-success">SCISSORS</button><br/><br/>
+
+      <button type="button" class="btn btn-danger" onclick=leave_room()>Quit</button>
     </div>
   </body>
 </html>
