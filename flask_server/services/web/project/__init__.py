@@ -10,7 +10,6 @@ app.config.from_object("project.config.Config")
 db.init_app(app)
 
 socketio = SocketIO(app, cors_allowed_origins="*")
-#socketio.init_app(app, cors_allowed_origins="*")
 
 @app.route("/")
 def register():
@@ -60,7 +59,7 @@ def game_room():
 def join(message):
     room = session.get("room")
     join_room(room)
-    #emit("status", {"msg": session.get("username") + "has entered"}, room=room)
+    emit("status", {"msg": session.get("username") + "has entered"}, room=room)
 
 @socketio.on("text", namespace="/game_room")
 def text(message):
