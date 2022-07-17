@@ -106,7 +106,7 @@
         
             function is_enough_credits()
             {
-                if(parseInt($('#credits').text()) - 3 > 0)
+                if(parseInt($('#credits').text()) - 3 >= 0)
                 {
                     return true;
                 }
