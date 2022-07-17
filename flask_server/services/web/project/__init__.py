@@ -119,7 +119,7 @@ def left(message):
 
 
 @socketio.on("selected_option", namespace="/game_room")#select rock paper or scissors
-def choose_rock(message):
+def choose_rock(message):#TODO: change function name
     room = session.get("room")
     username = session.get("username")
 
@@ -131,6 +131,7 @@ def choose_rock(message):
         if winner is not None:
             utils.calculate_and_commit_players_credits(list(games_statuses[room]), winner)
             utils.emit_updated_score(room, list(games_statuses[room]))
+            utils.update_winnings_count(room, winner)
             msg = "{} won with {}".format(winner, games_statuses[room][winner])
         else:
             msg = "Draw, {0} against {0}".format(games_statuses[room][username])

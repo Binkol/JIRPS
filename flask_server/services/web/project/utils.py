@@ -28,6 +28,18 @@ def calculate_and_commit_players_credits(players, winning_player):
     loser.credits -= 3
     db.session.commit()
 
+def update_winnings_count(room, player):
+    game = Game.query.filter_by(room_name=room).first()
+    winner = User.query.filter_by(name=player).first()
+    user1 = User.query.filter_by(id=game.user1_id).first()
+
+    if winner == user1:
+        game.user1_win_count += 1
+    else:
+        game.user2_win_count +=1
+    
+    db.session.commit()
+
 def emit_updated_score(room, players):
     for player in players:
         user = User.query.filter_by(name=player).first()
