@@ -119,7 +119,7 @@ def left(message):
 
 
 @socketio.on("selected_option", namespace="/game_room")#select rock paper or scissors
-def choose_rock(message):#TODO: change function name
+def selected_option(message):
     room = session.get("room")
     username = session.get("username")
 
