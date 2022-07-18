@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template, request, session
 from project.models import db, User, Game
 from flask_socketio import SocketIO, join_room, leave_room, emit
-from project import utils
+from project import utils,  rpc_client
 import datetime
 from sqlalchemy.sql import functions
 import json
@@ -16,6 +16,8 @@ db.init_app(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 games_statuses = {}
+
+rpc = rpc_client.RpcClient()
 
 
 @app.route("/")
@@ -156,8 +158,8 @@ def selected_option(message):
     emit("message", {"msg": username + " is ready."}, room=room)
 
     if len(games_statuses[room]) == 2: #if two players are connected to a game sessions
-        winner = utils.getWinner(games_statuses[room])
-        if winner is not None:
+        winner = rpc.call(games_statuses[room])
+        if winner != "draw":
             utils.calculate_and_commit_players_credits(list(games_statuses[room]), winner)
             utils.emit_updated_score(room, list(games_statuses[room]))
             utils.update_winnings_count(room, winner)
