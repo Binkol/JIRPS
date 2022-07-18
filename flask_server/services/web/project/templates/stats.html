@@ -1,0 +1,23 @@
+
+<html>
+<head>
+</head>
+
+<body>
+    
+
+    <h3>{{session['username']}} today's stats</h3>
+    <p>total games:  {{session['total_games']}}</p>
+    <p>total wins:  {{session['total_wins']}}</p>
+
+    {% if session['error']  %}
+    <p> {{ session['error'] }} </p>
+    {% endif %}
+    
+    <form action="/logout" method="post">
+        <input type="hidden" id="username" name="username" value={{session['username']}}>
+        <input type="submit" value="Logout">
+    </form> 
+</body>
+
+</html>

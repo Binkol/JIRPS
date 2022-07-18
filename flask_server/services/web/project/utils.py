@@ -38,6 +38,7 @@ def update_winnings_count(room, player):
     else:
         game.user2_win_count +=1
     
+    game.games_played += 1
     db.session.commit()
 
 def emit_updated_score(room, players):

@@ -25,6 +25,7 @@ class Game(db.Model):
     user2_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, default=None)
     user1_win_count = db.Column(db.Integer, default=0, nullable=False)
     user2_win_count = db.Column(db.Integer, default=0, nullable=False)
+    games_played = db.Column(db.Integer, default=0, nullable=False)
 
     def __init__(self, room_name, created_at, user1_id):
         self.room_name = room_name

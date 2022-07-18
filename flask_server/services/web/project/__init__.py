@@ -3,6 +3,8 @@ from project.models import db, User, Game
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from project import utils
 import datetime
+from sqlalchemy.sql import functions
+import json
 
 app = Flask(__name__,
             static_folder='./static',
@@ -84,6 +86,33 @@ def game_room():
             return render_template("home.html", session=session)
 
     return render_template("game_room.html", session=session)
+
+
+@app.route("/stats", methods=['POST'])
+def stats():
+    try:
+        user = User.query.filter_by(name=session.get("username")).first()
+        
+        current_time = datetime.datetime.now()
+        day_ago = current_time - datetime.timedelta(days=1)
+
+        total_games = Game.query.with_entities(db.func.sum(Game.games_played)).filter(Game.created_at > day_ago).where((Game.user1_id==user.id) | (Game.user2_id==user.id)).first()
+        
+        wins_as_user1 = Game.query.with_entities(db.func.sum(Game.user1_win_count)).filter(Game.created_at > day_ago).where(Game.user1_id==user.id).first()
+        wins_as_user2 = Game.query.with_entities(db.func.sum(Game.user2_win_count)).filter(Game.created_at > day_ago).where(Game.user2_id==user.id).first()
+        
+        wins_as_user1 = list(wins_as_user1)[0] if list(wins_as_user1)[0] is not None else 0
+        wins_as_user2 = list(wins_as_user2)[0] if list(wins_as_user2)[0] is not None else 0
+        
+        total_wins = wins_as_user1 + wins_as_user2
+
+        session["total_games"] = list(total_games)[0]
+        session["total_wins"] = total_wins
+
+        return render_template("stats.html", session=session)
+    except Exception as e:
+       session["error"] = "Failed to get stats: {}".format(e)
+       return render_template("home.html", session=session)
 
 
 @socketio.on("join", namespace="/game_room")

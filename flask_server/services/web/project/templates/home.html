@@ -11,6 +11,10 @@
     <input type="submit" value="Submit">
 </form> 
 
+<form action="/stats" method="post">
+    <input type="submit" value="Display today's stats">
+</form> 
+
 {% if session['error']  %}
 <p> {{ session['error'] }} </p>
 {% endif %}
